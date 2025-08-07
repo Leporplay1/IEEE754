@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>IEEE 754 - 32 y 64 bits</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    td {
+      border: 1px solid #333;
+      padding: 5px;
+      text-align: center;
+      width: 20px;
+    }
+    .etiqueta {
+      font-weight: bold;
+      text-align: center;
+    }
+    .signo {
+      background-color: #f5b042;
+    }
+    .exponente {
+      background-color: #95d5b2;
+    }
+    .mantisa {
+      background-color: #a0c4ff;
+    }
+    .seccion {
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="seccion">
+    <h2>Conversión IEEE 754 (32 bits)</h2>
+    <input type="text" id="input32" placeholder="Introduce un número">
+    <button onclick="calcularIEEE32()">Calcular</button>
+    <div id="resultado32" style="margin-top: 15px;"></div>
+    <div id="campoBits32Full"></div>
+  </div>
+
+  <div class="seccion">
+    <h2>Conversión IEEE 754 (64 bits)</h2>
+    <input type="text" id="input64" placeholder="Introduce un número">
+    <button onclick="calcularIEEE64()">Calcular</button>
+    <div id="resultado64" style="margin-top: 15px;"></div>
+    <div id="campoBits64Full"></div>
+  </div>
+
+  <script>
+    function construirTablaVacia(bits, contenedorId) {
+      const contenedor = document.getElementById(contenedorId);
+      contenedor.innerHTML = "";
+
+      const tabla = document.createElement("table");
+
+      // Fila 1: Índices
+      const filaIndices = document.createElement("tr");
+      const indices = [bits - 1];
+      for (let i = bits - 2; i >= 0; i--) {
+        indices.push(i.toString());
+      }
+      indices.forEach((idx) => {
+        const td = document.createElement("td");
+        td.textContent = idx;
+        td.style.textAlign = "center";
+        td.style.width = "20px";
+        filaIndices.appendChild(td);
+      });
+      tabla.appendChild(filaIndices);
+
+      // Fila 2: Bits vacíos con colores
+      const filaBits = document.createElement("tr");
+      for (let i = 0; i < bits; i++) {
+        const td = document.createElement("td");
+        td.textContent = "–";
+        td.id = `bit${bits}_${i}`;
+        td.style.textAlign = "center";
+
+        if (i === 0) td.className = "signo";
+        else if (i >= 1 && i < (bits === 32 ? 9 : 12)) td.className = "exponente";
+        else td.className = "mantisa";
+
+        filaBits.appendChild(td);
+      }
+      tabla.appendChild(filaBits);
+
+      // Fila 3: Etiquetas
+      const filaEtiquetas = document.createElement("tr");
+
+      const tdS = document.createElement("td");
+      tdS.textContent = "S";
+      tdS.className = "etiqueta signo";
+      filaEtiquetas.appendChild(tdS);
+
+      const tdExp = document.createElement("td");
+      tdExp.textContent = "Exponente";
+      tdExp.colSpan = bits === 32 ? 8 : 11;
+      tdExp.className = "etiqueta exponente";
+      filaEtiquetas.appendChild(tdExp);
+
+      const tdMantisa = document.createElement("td");
+      tdMantisa.textContent = "Mantisa";
+      tdMantisa.colSpan = bits === 32 ? 23 : 52;
+      tdMantisa.className = "etiqueta mantisa";
+      filaEtiquetas.appendChild(tdMantisa);
+
+      tabla.appendChild(filaEtiquetas);
+      contenedor.appendChild(tabla);
+    }
+
+    function calcularIEEE32() {
+      let bits = [];
+      const num = parseFloat(document.getElementById("input32").value);
+      if (isNaN(num)) {
+        alert("Por favor, introduce un número válido.");
+        return;
+      }
+
+      const buffer = new ArrayBuffer(4);
+      const view = new DataView(buffer);
+      view.setFloat32(0, num);
+
+      for (let i = 0; i < 4; i++) {
+        let byte = view.getUint8(i);
+        let bin = byte.toString(2).padStart(8, "0");
+        bits.push(...bin);
+      }
+
+      for (let i = 0; i < bits.length; i++) {
+        const celda = document.getElementById(`bit32_${i}`);
+        if (celda) {
+          celda.textContent = bits[i];
+        }
+      }
+
+      const signo = bits[0];
+      const exponente = bits.slice(1, 9).join("");
+      const mantisa = bits.slice(9, 32).join("");
+
+      document.getElementById("resultado32").innerHTML =
+        `<strong>Signo:</strong> ${signo} <br>
+         <strong>Exponente:</strong> ${exponente} <br>
+         <strong>Mantisa:</strong> ${mantisa} <br>
+         <strong>IEEE 754:</strong> ${bits.join("")}`;
+    }
+
+    function calcularIEEE64() {
+      let bits = [];
+      const num = parseFloat(document.getElementById("input64").value);
+      if (isNaN(num)) {
+        alert("Por favor, introduce un número válido.");
+        return;
+      }
+
+      const buffer = new ArrayBuffer(8);
+      const view = new DataView(buffer);
+      view.setFloat64(0, num);
+
+      for (let i = 0; i < 8; i++) {
+        let byte = view.getUint8(i);
+        let bin = byte.toString(2).padStart(8, "0");
+        bits.push(...bin);
+      }
+
+      for (let i = 0; i < bits.length; i++) {
+        const celda = document.getElementById(`bit64_${i}`);
+        if (celda) {
+          celda.textContent = bits[i];
+        }
+      }
+
+      const signo = bits[0];
+      const exponente = bits.slice(1, 12).join("");
+      const mantisa = bits.slice(12, 64).join("");
+
+      document.getElementById("resultado64").innerHTML =
+        `<strong>Signo:</strong> ${signo} <br>
+         <strong>Exponente:</strong> ${exponente} <br>
+         <strong>Mantisa:</strong> ${mantisa} <br>
+         <strong>IEEE 754:</strong> ${bits.join("")}`;
+    }
+
+    window.onload = function () {
+      construirTablaVacia(32, "campoBits32Full");
+      construirTablaVacia(64, "campoBits64Full");
+    };
+  </script>
+
+</body>
+</html>
